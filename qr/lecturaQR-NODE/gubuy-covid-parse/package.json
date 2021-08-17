@@ -1,0 +1,24 @@
+{
+  "name": "gubuy-covid-parser",
+  "version": "0.1.0",
+  "description": "Set of methods necessary to verify the signature of a covid-19 vaccination certificate in Uruguay",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "gubuy",
+    "covid",
+    "parse"
+  ],
+  "author": "@darien.macias, @gonzalo.guevara",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^27.0.6"
+  },
+  "dependencies": {
+    "base45-js": "^1.0.2",
+    "cbor": "^7.0.6",
+    "pako": "^2.0.3"
+  }
+}
