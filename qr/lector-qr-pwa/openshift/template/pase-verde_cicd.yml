@@ -1,0 +1,93 @@
+﻿apiVersion: v1
+kind: Template
+metadata:
+  name: agripal-pipeline
+
+objects:
+
+- apiVersion: v1
+  stringData:
+    password: "${PASS_GITLAB}"
+    username: "${USER_GITLAB}"
+  kind: Secret
+  metadata:
+    name: gitlab-auth-secret
+  type: kubernetes.io/basic-auth
+
+- apiVersion: v1
+  data:
+    AGRIPAL_TEST_NAMESPACE: ${AGRIPAL_TEST_NAMESPACE}
+    AGRIPAL_PROD_NAMESPACE: ${AGRIPAL_PROD_NAMESPACE}
+  kind: ConfigMap
+  metadata:
+    name: agripal-envs
+
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      template: agripal-pipeline
+    name: pipeline-agripal-prod
+  spec:
+    nodeSelector: {}
+    output: {}
+    postCommit: {}
+    resources: 
+      limits: 
+        cpu: 200m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    runPolicy: Serial
+    source:
+      contextDir: "openshift/pipeline/"
+      git:
+        ref: prod
+        uri: https://gitlab.agesic.gub.uy/gubuy/control-de-acceso.git
+      sourceSecret:
+        name: gitlab-auth-secret
+      type: Git
+    strategy:
+      jenkinsPipelineStrategy:
+        env:
+        - name: AGRIPAL_TEST_NAMESPACE
+          valueFrom: 
+          configMapKeyRef:
+            key: AGRIPAL_TEST_NAMESPACE
+            name: agripal-envs
+        - name: AGRIPAL_PROD_NAMESPACE
+          valueFrom: 
+          configMapKeyRef:
+            key: AGRIPAL_PROD_NAMESPACE
+            name: agripal-envs
+        jenkinsfilePath: jenkinsfile
+      type: JenkinsPipeline
+    triggers: []
+  status:
+
+parameters:
+
+- descripcion: Nombre namespace donde está alojado el ambiente de Test de AGripal 
+  displayName: Namespace AGripal-Test Env?
+  name: AGRIPAL_TEST_NAMESPACE
+  required: true
+  value: test-agendagripe
+- descripcion: Nombre namespace donde está alojado el ambiente de Prod de AGripal 
+  displayName: Namespace AGripal-Prod Env?
+  name: AGRIPAL_PROD_NAMESPACE
+  required: true
+  value: prod-agendagripe
+- descripcion: Usuario con acceso al repositorio 
+  displayName: user gitlab
+  name: USER_GITLAB
+  required: true
+  from: "[a-zA-Z0-9]{16}"
+  generate: expression
+- descripcion: Acceso al repositorio 
+  displayName: pass gitlab
+  name: PASS_GITLAB
+  required: true
+  from: "[a-zA-Z0-9]{16}"
+  generate: expression

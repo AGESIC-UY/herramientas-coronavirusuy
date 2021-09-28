@@ -1,0 +1,31 @@
+node {
+      
+    def userInput = null
+
+    stage('Obteniendo parametros') {
+        userInput = input(
+                id: 'userInput',
+                message: 'Identifique los NameSpaces de test y prod',
+                ok: 'Desplegar',
+                parameters: [
+                        [$class: 'StringParameterDefinition', defaultValue: params.AGRIPAL_TEST_NAMESPACE, description: 'Nombre del ambiente TEST', name: 'nameSapceTest'],
+                        [$class: 'StringParameterDefinition', defaultValue: params.AGRIPAL_PROD_NAMESPACE, description: 'Nombre del ambiente PROD', name: 'nameSapceProd'],
+                ]
+        )
+    }
+    
+    def imageStreamNameFrom = "${userInput.nameSapceTest}/antigripal-frontend:BETA"
+
+   	echo "version a deployar desde ... ${imageStreamNameFrom}"
+   	echo "version a deployar desde ... ${userInput.nameSapceTest}"
+    
+    stage ('Promote to Prod') {
+          sh "oc tag ${imageStreamNameFrom} ${userInput.nameSapceProd}/antigripal-frontend:FINAL"
+    }
+
+  }
+  def version() {
+    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+    matcher ? matcher[0][1] : null
+  }
+  
